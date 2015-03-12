@@ -172,13 +172,26 @@ int main(int argc, char* argv[]) {
 			}
 
 			NSDictionary* defaults = getDefaultsDict(controllingUID);
-			// In this case it doesn't make any sense to use an existing lock file (in
-			// fact, one shouldn't exist), so we fail if the defaults system has unreasonable
-			// settings.
-			NSDictionary* lockDictionary = @{@"HostBlacklist": defaults[@"HostBlacklist"],
-											 @"BlockDuration": defaults[@"BlockDuration"],
-											 @"BlockStartedDate": defaults[@"BlockStartedDate"],
-											 @"BlockAsWhitelist": defaults[@"BlockAsWhitelist"]};
+            NSDictionary* lockDictionary;
+            
+            // Check BlockStartedDate
+            if ([defaults[@"BlockStartedDate"] isEqualToDate: [NSDate distantFuture]]) {
+                lockDictionary = @{@"HostBlacklist": defaults[@"HostBlacklist"],
+                                   @"BlockDuration": defaults[@"BlockDuration"],
+                                   @"BlockStartedDate": [NSDate date],
+                                   @"BlockAsWhitelist": defaults[@"BlockAsWhitelist"]};
+
+            } else {
+                // In this case it doesn't make any sense to use an existing lock file (in
+                // fact, one shouldn't exist), so we fail if the defaults system has unreasonable
+                // settings.
+                lockDictionary = @{@"HostBlacklist": defaults[@"HostBlacklist"],
+                                   @"BlockDuration": defaults[@"BlockDuration"],
+                                   @"BlockStartedDate": defaults[@"BlockStartedDate"],
+                                   @"BlockAsWhitelist": defaults[@"BlockAsWhitelist"]};
+            }
+                 
+                 
 			if([lockDictionary[@"HostBlacklist"] count] <= 0 || [lockDictionary[@"BlockDuration"] intValue] < 1
 			   || lockDictionary[@"BlockStartedDate"] == nil
 			   || [lockDictionary[@"BlockStartedDate"] isEqualToDate: [NSDate distantFuture]]) {
